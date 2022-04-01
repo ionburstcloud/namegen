@@ -1,4 +1,4 @@
-source = ["./build/namegen"]
+source = ["./namegen"]
 bundle_id = "io.ionburst.namegen"
 
 apple_id {

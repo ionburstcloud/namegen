@@ -35,7 +35,7 @@ compile_linux-x64:
     - cp build_info build/
     - cd build
     - zip namegen-$RELEASE_VERSION-linux-amd64.zip namegen build_info
-    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-linux-amd64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-linux-amd64.zip -t "namegen $RELEASE_VERSION" < min_pass'
     - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-amd64.zip $namegen_path"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-amd64.zip.minisig $namegen_path"
@@ -63,7 +63,7 @@ compile_linux-arm64:
     - cp build_info build/
     - cd build
     - zip namegen-$RELEASE_VERSION-linux-arm64.zip namegen build_info
-    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-linux-arm64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-linux-arm64.zip -t "namegen $RELEASE_VERSION" < min_pass'
     - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-arm64.zip $namegen_path"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-arm64.zip.minisig $namegen_path"
@@ -80,6 +80,7 @@ compile_linux-arm64:
 compile_windows:
   stage: build
   before_script:
+    - source /etc/profile
     - . build_info
     - go get -v -d
     - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
@@ -91,8 +92,8 @@ compile_windows:
     - GOOS=windows GOARCH=amd64 go build -o ./build/namegen.exe -ldflags="-X=main.appVersion=$version"
     - cp build_info build/
     - cd build
-    - zip namegen-$RELEASE_VERSION-windows-arm64.zip namegen build_info
-    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-windows-arm64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - zip namegen-$RELEASE_VERSION-windows-arm64.zip namegen.exe build_info
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-windows-amd64.zip -t "namegen $RELEASE_VERSION" < min_pass'
     - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-windows-arm64.zip $namegen_path"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-windows-arm64.zip.minisig $namegen_path"
@@ -124,7 +125,7 @@ compile_mac:
     - ls -lah
     - spctl -a -vv -t install namegen
     - zip namegen-$RELEASE_VERSION-darwin-amd64.zip namegen build_info
-    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-darwin-amd64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-darwin-amd64.zip -t "namegen $RELEASE_VERSION" < min_pass'
     - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-amd64.zip $namegen_path"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-amd64.zip.minisig $namegen_path"
@@ -158,7 +159,7 @@ compile_mac_arm64:
     - ls -lah
     - spctl -a -vv -t install namegen
     - zip namegen-$RELEASE_VERSION-darwin-arm64.zip namegen build_info
-    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-darwin-arm64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-darwin-arm64.zip -t "namegen $RELEASE_VERSION" < min_pass'
     - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-arm64.zip $namegen_path"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-arm64.zip.minisig $namegen_path"
