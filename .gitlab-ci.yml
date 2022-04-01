@@ -92,7 +92,7 @@ compile_windows:
     - GOOS=windows GOARCH=amd64 go build -o ./build/namegen.exe -ldflags="-X=main.appVersion=$version"
     - cp build_info build/
     - cd build
-    - zip namegen-$RELEASE_VERSION-windows-arm64.zip namegen.exe build_info
+    - zip namegen-$RELEASE_VERSION-windows-amd64.zip namegen.exe build_info
     - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-windows-amd64.zip -t "namegen $RELEASE_VERSION" < min_pass'
     - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
     - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-windows-arm64.zip $namegen_path"
