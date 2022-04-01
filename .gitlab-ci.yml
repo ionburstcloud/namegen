@@ -1,0 +1,178 @@
+image: $IMAGE
+
+stages:
+  - version
+  - build
+  - publish
+
+version:
+  stage: version
+  script:
+    - release next-version --allow-current
+    - release next-version --allow-current > .next-version
+    - echo "RELEASE_SHA=$CI_COMMIT_SHA" > build_info
+    - echo "RELEASE_VERSION=$(cat .next-version)" >> build_info
+    - cat build_info
+    - . build_info
+    - echo $RELEASE_VERSION
+  artifacts:
+    paths:
+      - build_info
+
+compile_linux-x64:
+  stage: build
+  before_script:
+    - source /etc/profile
+    - . build_info
+    - go get -v -d
+    - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
+    - cat $MINISIGN > minisign.key
+    - echo $MINISIGN_PASS > min_pass
+    - "ls -lah"
+    - mkdir -p build
+  script:
+    - go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
+    - cp build_info build/
+    - cd build
+    - zip namegen-$RELEASE_VERSION-linux-amd64.zip namegen build_info
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-linux-amd64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-amd64.zip $namegen_path"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-amd64.zip.minisig $namegen_path"
+    - "mc ls $namegen_path"
+    - "rm -f minisign.key"
+    - "rm -f min_pass"
+  artifacts:
+    paths:
+      - namegen
+      - build_info
+
+compile_linux-arm64:
+  stage: build
+  before_script:
+    - source /etc/profile
+    - . build_info
+    - go get -v -d
+    - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
+    - cat $MINISIGN > minisign.key
+    - echo $MINISIGN_PASS > min_pass
+    - "ls -lah"
+    - mkdir -p build
+  script:
+    - go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
+    - cp build_info build/
+    - cd build
+    - zip namegen-$RELEASE_VERSION-linux-arm64.zip namegen build_info
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-linux-arm64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-arm64.zip $namegen_path"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-linux-arm64.zip.minisig $namegen_path"
+    - "mc ls $namegen_path"
+    - "rm -f minisign.key"
+    - "rm -f min_pass"
+  artifacts:
+    paths:
+      - namegen
+      - build_info
+  tags:
+    - go-arm64
+
+compile_windows:
+  stage: build
+  before_script:
+    - . build_info
+    - go get -v -d
+    - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
+    - cat $MINISIGN > minisign.key
+    - echo $MINISIGN_PASS > min_pass
+    - "ls -lah"
+    - mkdir -p build
+  script:
+    - GOOS=windows GOARCH=amd64 go build -o ./build/namegen.exe -ldflags="-X=main.appVersion=$version"
+    - cp build_info build/
+    - cd build
+    - zip namegen-$RELEASE_VERSION-windows-arm64.zip namegen build_info
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-windows-arm64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-windows-arm64.zip $namegen_path"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-windows-arm64.zip.minisig $namegen_path"
+    - "mc ls $namegen_path"
+    - "rm -f minisign.key"
+    - "rm -f min_pass"
+  artifacts:
+    paths:
+      - namegen.exe
+      - build_info
+
+compile_mac:
+  stage: build
+  before_script:
+    - . build_info
+    - go get -v -d
+    - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
+    - cat $MINISIGN > minisign.key
+    - echo $MINISIGN_PASS > min_pass
+    - "ls -lah"
+    - mkdir -p build
+  script:
+    - GOOS=darwin GOARCH=amd64 go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
+    - gon --log-level info .gon.hcl
+    - rm -f ./build/namegen
+    - unzip namegen.zip
+    - ls -lah
+    - spctl -a -vv -t install namegen
+    - zip namegen-$RELEASE_VERSION-darwin-amd64.zip namegen build_info
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-darwin-amd64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-amd64.zip $namegen_path"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-amd64.zip.minisig $namegen_path"
+    - "mc ls $namegen_path"
+    - "rm -f minisign.key"
+    - "rm -f min_pass"
+  artifacts:
+    paths:
+      - namegen
+      - build_info
+  tags:
+    - go-mac
+
+compile_mac_arm64:
+  stage: build
+  before_script:
+    - . build_info
+    - go get -v -d
+    - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
+    - cat $MINISIGN > minisign.key
+    - echo $MINISIGN_PASS > min_pass
+    - "ls -lah"
+    - mkdir -p build
+  script:
+    - GOOS=darwin GOARCH=arm64 go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
+    - gon --log-level info .gon.hcl
+    - rm -f namegen
+    - unzip namegen.zip
+    - ls -lah
+    - spctl -a -vv -t install namegen
+    - zip namegen-$RELEASE_VERSION-darwin-arm64.zip namegen build_info
+    - 'minisign -s minisign.key -Sm namegen-$RELEASE_VERSION-darwin-arm64 -t "namegen $RELEASE_VERSION" < min_pass'
+    - "if [ $CI_COMMIT_REF_NAME = develop ]; then namegen_path=scw-fr-par/namegen/develop/; echo $namegen_path; elif [ $CI_COMMIT_REF_NAME = main ]; then namegen_path=scw-fr-par/namegen/; echo $namegen_path; fi;"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-arm64.zip $namegen_path"
+    - "mc cp --attr x-amz-acl=public-read namegen-$RELEASE_VERSION-darwin-arm64.zip.minisig $namegen_path"
+    - "mc ls $namegen_path"
+    - "rm -f minisign.key"
+    - "rm -f min_pass"
+  artifacts:
+    paths:
+      - namegen
+      - build_info
+  tags:
+    - go-mac-arm64
+
+publish:
+  stage: publish
+  script:
+    - release changelog
+    - release commit-and-tag CHANGELOG.md build_info
+  only:
+    - develop
+    - main
