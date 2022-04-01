@@ -11,7 +11,7 @@ Our initial release will cover a Go package and accompanying CLI tool, with plan
 
 ### CLI usage
 
-```sh
+```
 [example@namegen-example ~]$ namegen
 powerful_watt
 ```
