@@ -26,10 +26,10 @@ compile_linux-x64:
     - . build_info
     - go get -v -d
     - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
-    - cat $MINISIGN > minisign.key
-    - echo $MINISIGN_PASS > min_pass
-    - "ls -lah"
     - mkdir -p build
+    - cat $MINISIGN > build/minisign.key
+    - echo $MINISIGN_PASS > build/min_pass
+    - "ls -lah"
   script:
     - go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
     - cp build_info build/
@@ -54,10 +54,10 @@ compile_linux-arm64:
     - . build_info
     - go get -v -d
     - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
-    - cat $MINISIGN > minisign.key
-    - echo $MINISIGN_PASS > min_pass
-    - "ls -lah"
     - mkdir -p build
+    - cat $MINISIGN > build/minisign.key
+    - echo $MINISIGN_PASS > build/min_pass
+    - "ls -lah"
   script:
     - go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
     - cp build_info build/
@@ -83,10 +83,10 @@ compile_windows:
     - . build_info
     - go get -v -d
     - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
-    - cat $MINISIGN > minisign.key
-    - echo $MINISIGN_PASS > min_pass
-    - "ls -lah"
     - mkdir -p build
+    - cat $MINISIGN > build/minisign.key
+    - echo $MINISIGN_PASS > build/min_pass
+    - "ls -lah"
   script:
     - GOOS=windows GOARCH=amd64 go build -o ./build/namegen.exe -ldflags="-X=main.appVersion=$version"
     - cp build_info build/
@@ -110,14 +110,16 @@ compile_mac:
     - . build_info
     - go get -v -d
     - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
-    - cat $MINISIGN > minisign.key
-    - echo $MINISIGN_PASS > min_pass
-    - "ls -lah"
     - mkdir -p build
+    - cat $MINISIGN > build/minisign.key
+    - echo $MINISIGN_PASS > build/min_pass
+    - cp .gon.hcl build_info namegen.entitlements build/
+    - "ls -lah"
   script:
     - GOOS=darwin GOARCH=amd64 go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
+    - cd build
     - gon --log-level info .gon.hcl
-    - rm -f ./build/namegen
+    - rm -f ./namegen
     - unzip namegen.zip
     - ls -lah
     - spctl -a -vv -t install namegen
@@ -142,14 +144,16 @@ compile_mac_arm64:
     - . build_info
     - go get -v -d
     - mc config host add scw-fr-par https://s3.fr-par.scw.cloud $SCW_AK $SCW_SK --api S3v4
-    - cat $MINISIGN > minisign.key
-    - echo $MINISIGN_PASS > min_pass
-    - "ls -lah"
     - mkdir -p build
+    - cat $MINISIGN > build/minisign.key
+    - echo $MINISIGN_PASS > build/min_pass
+    - cp .gon.hcl build_info namegen.entitlements build/
+    - "ls -lah"
   script:
     - GOOS=darwin GOARCH=arm64 go build -o ./build/namegen -ldflags="-X=main.appVersion=$RELEASE_VERSION"
+    - cd build
     - gon --log-level info .gon.hcl
-    - rm -f namegen
+    - rm -f ./namegen
     - unzip namegen.zip
     - ls -lah
     - spctl -a -vv -t install namegen
