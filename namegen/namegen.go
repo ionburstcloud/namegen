@@ -119,15 +119,62 @@ var (
 	}
 
 	surname = [...]string{
-		"placeholder1",
-		"placeholder2",
-		"placeholder3",
+		"aitken",
+		"aiton",
+		"almeida",
+		"almeida",
+		"anderson",
+		"baird",
+		"balfour",
+		"barclay",
+		"barker",
+		"bassantin",
+		"bell",
+		"black",
+		"blackwell",
+		"boyd-orr",
+		"brewster",
+		"brisbane",
+		"bruce",
+		"buchanan",
+		"clerk-maxwell",
+		"croll",
+		"docherty",
+		"drummond",
+		"fairbairn",
+		"fleming",
+		"forbes",
+		"gordon",
+		"graham-bell",
+		"hall",
+		"hume",
+		"inglis",
+		"kelvin",
+		"liddell",
+		"logie-baird",
+		"macadam",
+		"macgregor",
+		"mackintosh",
+		"macleod",
+		"marshall",
+		"miller",
+		"rees-wilson",
+		"ritchie",
+		"robertson",
+		"savage",
+		"smith",
+		"somerville",
+		"stevenson",
+		"stuart",
+		"wallace",
+		"watson-watt",
+		"watt",
 	}
 )
 
 func GetRandomName() string {
 	rand.Seed(time.Now().UnixNano())
-	name := adjective[rand.Intn(len(adjective))] + "_" + surname[rand.Intn(len(surname))]
+	name := adjective[rand.Intn(len(adjective))] + "-" + surname[rand.Intn(len(surname))]
 
 	return name
 }
